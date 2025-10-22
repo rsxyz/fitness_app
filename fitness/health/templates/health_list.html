@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Health Log</h2>
+  
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <a href="{{ url_for('health_bp.health_add') }}" class="btn btn-primary">Add Entry</a>
+  <a href="{{ url_for('health_bp.health_import') }}" class="btn btn-secondary">Import CSV</a>
+  <a href="{{ url_for('health_bp.health_export') }}" class="btn btn-success">Export CSV</a>
+</div>
+
+  <table class="table table-bordered table-striped">
+    <thead class="table-light">
+      <tr>
+        <th class="sortable" data-type="date">Date</th>
+        <th class="sortable">Time</th>
+        <th class="sortable">BP (Sys/Dia)</th>
+        <th class="sortable">BPM</th>
+        <th class="sortable">Weight (lbs)</th>
+        <th class="sortable">BMI</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in records %}
+      <tr>
+        <td>{{ r['date'] }}</td>
+        <td>{{ r['time'] }}</td>
+        <td>{{ r['systolic'] }}/{{ r['diastolic'] }}</td>
+        <td>{{ r['bpm'] }}</td>
+        <td>{{ r['weight'] }}</td>
+        <td>{{ r['bmi'] }}</td>
+        <td>
+          <a href="{{ url_for('health_bp.health_edit', id=r['id']) }}" class="btn btn-sm btn-warning">Edit</a>
+          <a href="{{ url_for('health_bp.health_delete', id=r['id']) }}" class="btn btn-sm btn-danger"
+             onclick="return confirm('Delete this entry?')">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

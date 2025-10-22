@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3>{{ action }} Workout</h3>
+
+  <form id="workoutForm" method="POST">
+    <div class="row mb-3">
+      <div class="col-md-3">
+        <label class="form-label">Date</label>
+        <input type="date" name="date" class="form-control" required
+               value="{{ workout['date'] if workout else '' }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Time</label>
+        <input type="time" name="time" class="form-control" value="{{ workout['time'] if workout else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Body Part</label>
+        <input type="text" name="body_part" class="form-control" value="{{ workout['body_part'] if workout else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Notes</label>
+        <input type="text" name="notes" class="form-control" value="{{ workout['notes'] if workout else '' }}">
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5>Exercises</h5>
+      <button type="button" id="addExerciseBtn" class="btn btn-sm btn-primary">+ Add Exercise</button>
+    </div>
+
+    <div id="exercisesContainer">
+      {% if exercises %}
+        {# Prepopulate exercises & sets when editing #}
+        {% for ex in exercises %}
+        <div class="exercise card mb-3" data-ex-index="{{ loop.index0 }}">
+          <div class="card-body">
+            <div class="d-flex mb-2 align-items-center">
+              <select class="form-select me-2 ex-name">
+                <option value="">-- Exercise --</option>
+                {% for et in exercise_types %}
+                <option value="{{ et['name'] }}" {% if ex.exercise['exercise_name']==et['name'] %}selected{% endif %}>
+                  {{ et['body_part'] }} - {{ et['name'] }}
+                </option>
+                {% endfor %}
+                <option value="__custom__">-- Custom --</option>
+              </select>
+              <input type="text" class="form-control ex-name-custom ms-2" placeholder="Custom name"
+                     value="{{ ex.exercise['exercise_name'] }}" style="display:none">
+              <button type="button" class="btn btn-danger btn-sm ms-2 removeExercise">Remove</button>
+            </div>
+
+            <table class="table table-sm sets-table">
+              <thead><tr><th>Set</th><th>Reps</th><th>Weight</th><th>Rest(s)</th><th></th></tr></thead>
+              <tbody>
+                {% for s in ex.sets %}
+                <tr>
+                  <td><input class="form-control form-control-sm set-number" value="{{ s['set_number'] }}"></td>
+                  <td><input class="form-control form-control-sm reps" value="{{ s['reps'] }}"></td>
+                  <td><input class="form-control form-control-sm weight" value="{{ s['weight'] }}"></td>
+                  <td><input class="form-control form-control-sm rest" value="{{ s['rest_seconds'] }}"></td>
+                  <td><button type="button" class="btn btn-sm btn-outline-danger removeSet">x</button></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+            <button type="button" class="btn btn-sm btn-secondary addSet">+ Add Set</button>
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <input type="hidden" name="payload" id="payload">
+    <div class="mt-3">
+      <button type="submit" class="btn btn-success">Save Workout</button>
+      <a href="{{ url_for('strength_bp.strength_list') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Utility to create elements
+  function el(tag, attrs={}, html=''){ const e=document.createElement(tag); for(let k in attrs) e.setAttribute(k, attrs[k]); e.innerHTML=html; return e; }
+
+  function makeExerciseCard(exName='') {
+    const card = el('div', {'class':'exercise card mb-3'});
+    const body = el('div', {'class':'card-body'});
+    // exercise name select (basic; server-provided options are on page)
+    const select = document.createElement('select');
+    select.className = 'form-select ex-name me-2';
+    select.innerHTML = `<option value="">-- Exercise --</option>
+      {% for et in exercise_types %}
+      <option value="{{ et['name'] }}">{{ et['body_part'] }} - {{ et['name'] }}</option>
+      {% endfor %}
+      <option value="__custom__">-- Custom --</option>`;
+    const custom = el('input', {'class':'form-control ex-name-custom ms-2', 'placeholder':'Custom name', 'style':'display:none'});
+    const topRow = el('div', {'class':'d-flex mb-2 align-items-center'});
+    const removeEx = el('button', {'type':'button', 'class':'btn btn-danger btn-sm ms-2 removeExercise'}, 'Remove');
+    topRow.appendChild(select); topRow.appendChild(custom); topRow.appendChild(removeEx);
+
+    const table = el('table', {'class':'table table-sm sets-table'});
+    table.innerHTML = '<thead><tr><th>Set</th><th>Reps</th><th>Weight</th><th>Rest(s)</th><th></th></tr></thead><tbody></tbody>';
+    const addSetBtn = el('button', {'type':'button', 'class':'btn btn-sm btn-secondary addSet'}, '+ Add Set');
+
+    body.appendChild(topRow); body.appendChild(table); body.appendChild(addSetBtn);
+    card.appendChild(body);
+
+    // behavior
+    select.addEventListener('change', e=>{
+      if(e.target.value==='__custom__'){ custom.style.display='block'; }
+      else { custom.style.display='none'; custom.value=''; }
+    });
+    removeEx.addEventListener('click', ()=>card.remove());
+    addSetBtn.addEventListener('click', ()=>{
+      const tbody = table.querySelector('tbody');
+      const row = el('tr');
+      row.innerHTML = `<td><input class="form-control form-control-sm set-number"></td>
+                       <td><input class="form-control form-control-sm reps"></td>
+                       <td><input class="form-control form-control-sm weight"></td>
+                       <td><input class="form-control form-control-sm rest"></td>
+                       <td><button type="button" class="btn btn-sm btn-outline-danger removeSet">x</button></td>`;
+      tbody.appendChild(row);
+      row.querySelector('.removeSet').addEventListener('click', ()=>row.remove());
+    });
+
+    // if exName provided set value
+    if(exName){
+      // try to select matching option
+      const opt = Array.from(select.options).find(o => o.value===exName);
+      if(opt){ select.value = exName; }
+      else { select.value='__custom__'; custom.style.display='block'; custom.value = exName; }
+    }
+
+    return card;
+  }
+
+  document.getElementById('addExerciseBtn').addEventListener('click', ()=>{
+    document.getElementById('exercisesContainer').appendChild(makeExerciseCard());
+  });
+
+  // delegate some events for existing elements (when editing)
+  document.addEventListener('click', function(e){
+    if(e.target && e.target.classList.contains('addSet')){
+      // handled by card's own listener
+    }
+    if(e.target && e.target.classList.contains('removeSet')){
+      e.target.closest('tr').remove();
+    }
+    if(e.target && e.target.classList.contains('removeExercise')){
+      e.target.closest('.exercise').remove();
+    }
+  });
+
+  // On submit convert the exercises & sets into JSON payload
+  document.getElementById('workoutForm').addEventListener('submit', function(evt){
+    const exercises = [];
+    document.querySelectorAll('#exercisesContainer .exercise').forEach((card, idx)=>{
+      const select = card.querySelector('.ex-name');
+      const custom = card.querySelector('.ex-name-custom');
+      let exName = '';
+      if(select.value==='__custom__'){
+        exName = custom.value.trim();
+      } else {
+        exName = select.value;
+      }
+      if(!exName) return; // skip empty
+
+      const sets = [];
+      card.querySelectorAll('.sets-table tbody tr').forEach((tr, sidx)=>{
+        const setNumber = tr.querySelector('.set-number')?.value || (sidx+1);
+        const reps = tr.querySelector('.reps')?.value || null;
+        const weight = tr.querySelector('.weight')?.value || null;
+        const rest = tr.querySelector('.rest')?.value || null;
+        sets.push({
+          set_number: Number(setNumber),
+          reps: reps ? Number(reps) : null,
+          weight: weight ? Number(weight) : null,
+          rest: rest ? Number(rest) : null
+        });
+      });
+
+      exercises.push({ exercise_name: exName, sets });
+    });
+
+    document.getElementById('payload').value = JSON.stringify({ exercises });
+    // form will submit
+  });
+</script>
+{% endblock %}

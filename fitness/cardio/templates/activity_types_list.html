@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Activity Types</h3>
+    <a href="{{ url_for('cardio_bp.add_activity_type') }}" class="btn btn-primary btn-sm">➕ Add Activity Type</a>
+  </div>
+
+  {% if types %}
+  <table class="table table-striped table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th class="sortable">Name</th>
+        <th>Description</th>
+        <th style="width: 140px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in types %}
+      <tr>
+        <td>{{ t.name }}</td>
+        <td>{{ t.description or '' }}</td>
+        <td>
+          <a href="{{ url_for('cardio_bp.edit_activity_type', id=t.id) }}" class="btn btn-sm btn-warning">✏️ Edit</a>
+          <a href="{{ url_for('cardio_bp.delete_activity_type', id=t.id) }}" class="btn btn-sm btn-danger"
+             onclick="return confirm('Delete this activity type?')">🗑️ Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted">No activity types added yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

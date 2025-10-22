@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3>{{ action }} Exercise Type</h3>
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">Name</label>
+      <input type="text" name="name" class="form-control" required value="{{ exercise_type['name'] if exercise_type else '' }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Body Part</label>
+      <input type="text" name="body_part" class="form-control" value="{{ exercise_type['body_part'] if exercise_type else '' }}">
+    </div>
+    <button type="submit" class="btn btn-success">Save</button>
+    <a href="{{ url_for('strength_bp.exercise_types') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

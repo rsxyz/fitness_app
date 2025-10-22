@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Strength Workouts</h3>
+    <div>
+      <a href="{{ url_for('strength_bp.strength_add') }}" class="btn btn-primary">➕ Add Workout</a>
+      <a href="{{ url_for('strength_bp.exercise_types') }}" class="btn btn-secondary">Exercise Types</a>
+    </div>
+  </div>
+
+  {% if workouts %}
+  <table class="table table-striped">
+    <thead class="table-light">
+      <tr>
+         <th class="sortable">Date</th>
+         <th class="sortable">Time</th>
+         <th class="sortable">Body Part</th>
+        <th>Notes</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for w in workouts %}
+      <tr>
+        <td>{{ w['date'] }}</td>
+        <td>{{ w['time'] or '' }}</td>
+        <td>{{ w['body_part'] or '' }}</td>
+        <td>{{ w['notes'] or '' }}</td>
+        <td>
+          <a href="{{ url_for('strength_bp.strength_view', id=w['id']) }}" class="btn btn-sm btn-info">View</a>
+          <a href="{{ url_for('strength_bp.strength_edit', id=w['id']) }}" class="btn btn-sm btn-warning">Edit</a>
+          <a href="{{ url_for('strength_bp.strength_delete', id=w['id']) }}" class="btn btn-sm btn-danger"
+             onclick="return confirm('Delete this workout?')">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted">No strength workouts yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

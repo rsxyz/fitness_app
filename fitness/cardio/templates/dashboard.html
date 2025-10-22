@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <h3 class="mb-4">📊 Weekly Dashboard</h3>
+
+  <div class="row">
+    <div class="col-md-12 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title">🏃 Total Distance per Week (miles)</h5>
+          <canvas id="distanceChart" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-12 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title">🔥 Calories Burned per Week</h5>
+          <canvas id="caloriesChart" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-12 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title">🕒 Average Pace per Week (min/mile)</h5>
+          <canvas id="paceChart" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const weeks = {{ weeks|tojson }};
+const distances = {{ distances|tojson }};
+const calories = {{ calories|tojson }};
+const pace = {{ pace_decimal|tojson }};
+
+new Chart(document.getElementById('distanceChart'), {
+  type: 'bar',
+  data: {
+    labels: weeks,
+    datasets: [{
+      label: 'Miles',
+      data: distances,
+      borderWidth: 2,
+      borderColor: '#007bff',
+      backgroundColor: 'rgba(0, 123, 255, 0.4)',
+    }]
+  },
+  options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('caloriesChart'), {
+  type: 'line',
+  data: {
+    labels: weeks,
+    datasets: [{
+      label: 'Calories Burned',
+      data: calories,
+      fill: true,
+      borderColor: '#dc3545',
+      backgroundColor: 'rgba(220,53,69,0.3)',
+      borderWidth: 2
+    }]
+  },
+  options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('paceChart'), {
+  type: 'line',
+  data: {
+    labels: weeks,
+    datasets: [{
+      label: 'Pace (min/mile)',
+      data: pace,
+      borderColor: '#28a745',
+      backgroundColor: 'rgba(40,167,69,0.2)',
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { beginAtZero: false, reverse: true } },
+    plugins: { tooltip: { callbacks: {
+      label: function(ctx) {
+        const val = ctx.parsed.y;
+        const min = Math.floor(val);
+        const sec = Math.round((val - min) * 60);
+        return `${min}:${sec.toString().padStart(2,'0')} min/mile`;
+      }
+    }}}
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,159 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Utility: try parse many date formats into a JS Date object (or null)
+  function parseDateFlexible(s) {
+    if (!s) return null;
+    s = s.trim();
+
+    // ISO-like: 2025-10-21 or 2025-10-21 09:30 or 2025-10-21T09:30:00
+    const isoMatch = s.match(/^\d{4}-\d{2}-\d{2}(?:[ T]\d{1,2}:\d{2}(?::\d{2})?)?$/);
+    if (isoMatch) {
+      const d = new Date(s.replace(' ', 'T'));
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    // US style: MM/DD/YYYY or M/D/YYYY with optional time e.g. 7/29/2025 9:30 AM
+    const usMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(.+))?$/);
+    if (usMatch) {
+      const month = Number(usMatch[1]) - 1;
+      const day = Number(usMatch[2]);
+      const year = Number(usMatch[3]);
+      // if time portion present, try parse it appended
+      if (usMatch[4]) {
+        const dt = new Date(`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}T${usMatch[4]}`);
+        if (!isNaN(dt.getTime())) return dt;
+      }
+      const d = new Date(year, month, day);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    // Fallback: Date.parse for other reasonable formats
+    const d2 = new Date(s);
+    return isNaN(d2.getTime()) ? null : d2;
+  }
+
+  // Main sorter hookup
+  document.querySelectorAll('th.sortable').forEach(header => {
+    header.style.cursor = 'pointer';
+    header.addEventListener('click', () => {
+      const table = header.closest('table');
+      const tbody = table.querySelector('tbody');
+      if (!tbody) return;
+      const headers = Array.from(header.parentNode.children);
+      const index = headers.indexOf(header);
+
+      // toggle order
+      const order = header.dataset.order === 'asc' ? 'desc' : 'asc';
+      header.dataset.order = order;
+
+      // optional explicit type: 'date', 'number', 'text'
+      const forcedType = header.datasetType || header.getAttribute('data-type') || null;
+
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const aCell = a.children[index]?.innerText.trim() || '';
+        const bCell = b.children[index]?.innerText.trim() || '';
+
+        // 1) If forced type is date -> try parse
+        if (forcedType === 'date' || (!forcedType && (parseDateFlexible(aCell) || parseDateFlexible(bCell)))) {
+          const aDate = parseDateFlexible(aCell);
+          const bDate = parseDateFlexible(bCell);
+          if (aDate && bDate) return order === 'asc' ? aDate - bDate : bDate - aDate;
+          if (aDate) return order === 'asc' ? -1 : 1;
+          if (bDate) return order === 'asc' ? 1 : -1;
+          // fallthrough to text compare if both null
+        }
+
+        // 2) Numeric compare if both look numeric (strip commas/currency)
+        const aNum = parseFloat(aCell.replace(/[^0-9.\-]/g, ''));
+        const bNum = parseFloat(bCell.replace(/[^0-9.\-]/g, ''));
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return order === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+
+        // 3) Fallback to string compare (case-insensitive)
+        return order === 'asc'
+          ? aCell.localeCompare(bCell, undefined, { numeric: true, sensitivity: 'base' })
+          : bCell.localeCompare(aCell, undefined, { numeric: true, sensitivity: 'base' });
+      });
+
+      // re-attach sorted rows
+      tbody.innerHTML = '';
+      rows.forEach(r => tbody.appendChild(r));
+
+      // reset arrow markers and set the arrow for the active header
+      table.querySelectorAll('th.sortable').forEach(h => {
+        h.classList.remove('sort-asc', 'sort-desc');
+      });
+      header.classList.add(order === 'asc' ? 'sort-asc' : 'sort-desc');
+    });
+  });
+});
+</script>
+
+<style>
+/* optional visuals */
+th.sortable { user-select: none; }
+th.sortable.sort-asc::after { content: " ↑"; }
+th.sortable.sort-desc::after { content: " ↓"; }
+</style>
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fitness Tracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="d-flex">
+    <div class="bg-dark text-white p-3" style="min-width:200px; height:100vh;">
+        <h4>🏋️‍♂️ Fitness</h4>
+        <ul class="nav flex-column">
+<li class="nav-item"><a href="{{ url_for('index') }}" class="nav-link text-white">Home</a></li>
+<li class="nav-item"><a href="{{ url_for('cardio_bp.cardio_list') }}" class="nav-link text-white">Cardio</a></li>
+<li class="nav-item"><a href="{{ url_for('cardio_bp.activity_types') }}" class="nav-link text-white">Activity Types</a></li>
+<li class="nav-item"><a href="{{ url_for('cardio_bp.dashboard') }}" class="nav-link text-white">📊 Cardio Dashboard</a></li>
+<li class="nav-item">
+  <a class="nav-link text-white" href="{{ url_for('food_bp.food_list') }}">🍽️ Food Log</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link text-white" href="{{ url_for('food_bp.meal_types') }}">🥗 Meal Types</a>
+</li>
+<li class="nav-item"><a class="nav-link text-white" href="{{ url_for('health_bp.health_list') }}">🩺 Health Log</a></li>
+  
+  <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('health_bp.health_import') }}">📥 Import Health CSV</a></li>
+  <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('health_bp.health_dashboard') }}">📈 Health Dashboard</a></li>
+
+    
+<li class="nav-item"><a class="nav-link text-white" href="{{ url_for('strength_bp.strength_list') }}">🏋️ Strength</a></li>
+<li class="nav-item"><a class="nav-link text-white" href="{{ url_for('strength_bp.exercise_types') }}">🏷️ Exercise Types</a></li>
+<li class="nav-item"><a class="nav-link text-white" href="{{ url_for('strength_bp.strength_dashboard') }}">Strength Analytics</a></li>
+<li class="nav-item"><a class="nav-link text-white" href="{{ url_for('strength_bp.import_strength') }}">💪 Strength Export/Import</a></li>
+
+  
+          </ul>
+    </div>
+    <div class="flex-grow-1 p-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container mb-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</div>
+</body>
+</html>

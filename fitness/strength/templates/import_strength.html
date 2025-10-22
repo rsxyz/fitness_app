@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Import Strength Workouts</h2>
+  <form action="{{ url_for('strength_bp.import_strength') }}" method="post" enctype="multipart/form-data" class="mt-3">
+    <div class="mb-3">
+      <label class="form-label">Select File (CSV or JSON)</label>
+      <input type="file" name="file" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Format</label>
+      <select name="format" class="form-select" required>
+        <option value="csv">CSV</option>
+        <option value="json">JSON</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Import</button>
+  </form>
+
+  <hr>
+  <h4>Export Workouts</h4>
+  <a href="{{ url_for('strength_bp.export_strength', fmt='csv') }}" class="btn btn-success">Export CSV</a>
+  <a href="{{ url_for('strength_bp.export_strength', fmt='json') }}" class="btn btn-info text-white">Export JSON</a>
+</div>
+{% endblock %}

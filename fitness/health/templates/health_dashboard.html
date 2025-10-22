@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Health Dashboard</h2>
+  <p class="text-muted">Track your BP, Heart Rate, Weight, and BMI trends over time.</p>
+
+  <div class="mb-4">
+    <canvas id="bpChart" height="100"></canvas>
+  </div>
+  <div class="mb-4">
+    <canvas id="weightChart" height="100"></canvas>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const labels = {{ dates|tojson }};
+  const systolic = {{ systolic|tojson }};
+  const diastolic = {{ diastolic|tojson }};
+  const bpm = {{ bpm|tojson }};
+  const weight = {{ weight|tojson }};
+  const bmi = {{ bmi|tojson }};
+
+  // --- BP Chart ---
+  new Chart(document.getElementById('bpChart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Systolic',
+          data: systolic,
+          borderColor: 'red',
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'Diastolic',
+          data: diastolic,
+          borderColor: 'blue',
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'BPM',
+          data: bpm,
+          borderColor: 'green',
+          fill: false,
+          tension: 0.3,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      stacked: false,
+      plugins: { title: { display: true, text: 'Blood Pressure & Heart Rate' } },
+      scales: {
+        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'mmHg' }},
+        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'BPM' }, grid: { drawOnChartArea: false }}
+      }
+    }
+  });
+
+  // --- Weight Chart ---
+  new Chart(document.getElementById('weightChart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Weight (lbs)',
+          data: weight,
+          borderColor: 'orange',
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'BMI',
+          data: bmi,
+          borderColor: 'purple',
+          fill: false,
+          tension: 0.3,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      stacked: false,
+      plugins: { title: { display: true, text: 'Weight & BMI Trends' } },
+      scales: {
+        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Weight (lbs)' }},
+        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'BMI' }, grid: { drawOnChartArea: false }}
+      }
+    }
+  });
+</script>
+{% endblock %}

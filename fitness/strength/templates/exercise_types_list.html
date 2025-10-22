@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Exercise Types</h3>
+    <a href="{{ url_for('strength_bp.add_exercise_type') }}" class="btn btn-primary">+ Add Exercise Type</a>
+  </div>
+
+  <table class="table table-striped">
+    <thead class="table-light">
+      <tr><th class="sortable">ID</th><th class="sortable">Body Part</th><th class="sortable">Name</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for t in types %}
+      <tr>
+        <td>{{ t['id'] }}</td>
+        <td>{{ t['body_part'] or '' }}</td>
+        <td>{{ t['name'] }}</td>
+        <td>
+          <a href="{{ url_for('strength_bp.edit_exercise_type', id=t['id']) }}" class="btn btn-sm btn-warning">Edit</a>
+          <a href="{{ url_for('strength_bp.delete_exercise_type', id=t['id']) }}" class="btn btn-sm btn-danger"
+             onclick="return confirm('Delete this exercise type?')">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

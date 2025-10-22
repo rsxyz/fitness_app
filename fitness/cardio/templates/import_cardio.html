@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Import Cardio Workouts (CSV)</h2>
+<form method="POST" enctype="multipart/form-data">
+    <div>
+        <label>Select CSV file:</label>
+        <input type="file" name="file" accept=".csv" required>
+    </div>
+    <br>
+    <button type="submit">Import</button>
+</form>
+{% endblock %}

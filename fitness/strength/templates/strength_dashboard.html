@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>🏋️ Strength Dashboard</h2>
+
+  <form id="exerciseForm" class="mb-4">
+    <label for="exerciseSelect">Select Exercise:</label>
+    <select id="exerciseSelect" class="form-select">
+      <option value="">-- choose --</option>
+      {% for e in exercises %}
+      <option value="{{ e.id }}">{{ e.exercise_name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <div>
+    <canvas id="volumeChart" height="100"></canvas>
+  </div>
+
+  <div class="mt-3">
+    <h5 id="prDisplay"></h5>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let chart;
+
+document.getElementById('exerciseSelect').addEventListener('change', async function() {
+  const id = this.value;
+  if (!id) return;
+
+  const response = await fetch(`/strength/api/strength_data/${id}`);
+  const data = await response.json();
+
+  // Update PR
+  document.getElementById('prDisplay').innerText = `🏆 PR: ${data.pr} lbs`;
+
+  // Destroy old chart if exists
+  if (chart) chart.destroy();
+
+  // Create new Chart
+  const ctx = document.getElementById('volumeChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.dates,
+      datasets: [{
+        label: 'Total Volume (lbs)',
+        data: data.volumes,
+        borderWidth: 2,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true },
+        title: { display: true, text: 'Training Volume Over Time' }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Date' } },
+        y: { title: { display: true, text: 'Volume (lbs)' }, beginAtZero: true }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

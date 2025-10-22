@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>{{ action }} Meal</h2>
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">Date</label>
+      <input type="date" name="date" class="form-control" required
+             value="{{ food['date'] if food else '' }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Time</label>
+      <input type="time" name="time" class="form-control"
+             value="{{ food['time'] if food else '' }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Meal Type</label>
+      <select name="meal_type_id" class="form-select" required>
+        {% for m in meal_types %}
+        <option value="{{ m['id'] }}" {% if food and food['meal_type_id']==m['id'] %}selected{% endif %}>
+          {{ m['name'] }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Food Item</label>
+      <input type="text" name="food_item" class="form-control" required
+             value="{{ food['food_item'] if food else '' }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Quantity</label>
+      <input type="text" name="quantity" class="form-control"
+             value="{{ food['quantity'] if food else '' }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Calories</label>
+      <input type="number" name="calories" class="form-control"
+             value="{{ food['calories'] if food else '' }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Notes</label>
+      <textarea name="notes" class="form-control" rows="3">{{ food['notes'] if food else '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">{{ action }}</button>
+    <a href="{{ url_for('food_bp.food_list') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

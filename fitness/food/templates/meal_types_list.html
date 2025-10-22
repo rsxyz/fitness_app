@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Meal Types</h2>
+  <a href="{{ url_for('food_bp.add_meal_type') }}" class="btn btn-primary mb-3">Add Meal Type</a>
+
+  <table class="table table-striped table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th class="sortable">ID</th>
+        <th class="sortable">Name</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in meal_types %}
+      <tr>
+        <td>{{ m['id'] }}</td>
+        <td>{{ m['name'] }}</td>
+        <td>
+          <a href="{{ url_for('food_bp.edit_meal_type', id=m['id']) }}" class="btn btn-sm btn-warning">Edit</a>
+          <a href="{{ url_for('food_bp.delete_meal_type', id=m['id']) }}" class="btn btn-sm btn-danger"
+             onclick="return confirm('Delete this meal type?')">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+

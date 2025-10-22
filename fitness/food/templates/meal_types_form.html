@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>{{ action }} Meal Type</h2>
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">Meal Type Name</label>
+      <input type="text" name="name" class="form-control" required
+             value="{{ meal_type['name'] if meal_type else '' }}">
+    </div>
+
+    <button type="submit" class="btn btn-success">{{ action }}</button>
+    <a href="{{ url_for('food_bp.meal_types') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

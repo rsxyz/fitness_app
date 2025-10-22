@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between">
+    <h3>Workout: {{ workout['date'] }} {{ workout['time'] or '' }}</h3>
+    <div>
+      <a href="{{ url_for('strength_bp.strength_edit', id=workout['id']) }}" class="btn btn-sm btn-warning">Edit</a>
+      <a href="{{ url_for('strength_bp.strength_list') }}" class="btn btn-sm btn-secondary">Back</a>
+    </div>
+  </div>
+
+  <p class="text-muted">Body Part: {{ workout['body_part'] or '—' }} | Notes: {{ workout['notes'] or '' }}</p>
+
+  {% for ex in exercises %}
+  <div class="card mb-3">
+    <div class="card-header">
+      <strong>{{ ex.exercise['exercise_name'] }}</strong>
+    </div>
+    <div class="card-body">
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr><th>Set</th><th>Reps</th><th>Weight (lbs)</th><th>Rest (s)</th></tr>
+        </thead>
+        <tbody>
+          {% for s in ex.sets %}
+          <tr>
+            <td>{{ s['set_number'] }}</td>
+            <td>{{ s['reps'] or '' }}</td>
+            <td>{{ s['weight'] or '' }}</td>
+            <td>{{ s['rest_seconds'] or '' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

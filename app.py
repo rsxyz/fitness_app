@@ -8,12 +8,16 @@ from fitness.health import health_bp
 from fitness.strength import strength_bp
 
 import os
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__,
              template_folder="fitness/templates",   # ✅ tell Flask where global templates are
              static_folder="fitness/static")        # optional if you use static assets
 
 app.secret_key = "supersecret"
+
+# tell Flask how many proxies to trust (set to 1 for single nginx)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
 # Register Blueprints
 app.register_blueprint(cardio_bp, url_prefix="/cardio")
